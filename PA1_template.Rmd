@@ -36,7 +36,7 @@ median_steps <- median(data_totals$total_steps, na.rm=TRUE)
 
 # Make histogram of step totals
 with(data_totals,
-     hist(data_totals$total_steps,
+     hist(data_totals$total_steps, breaks=30,
           xlab="Total Steps", main="Histogram of Total Steps Per Day"))
 
 # Plot vertical lines at mean and median
@@ -47,7 +47,7 @@ abline(v=median_steps, col="blue", lty=2, lwd=2)
 legend("topright", legend=c("Mean", "Median"),
        col=c("red", "blue"), lty=2, lwd=2)
 ```
-
+First we group the step numbers by the date using group_by and take the sum of the total steps on each day.
 
 ## What is the average daily activity pattern?
 ```{r dailyactivitypattern}
@@ -93,8 +93,7 @@ wide <- wide[!all_nas]
 data_matrix <- as.matrix(wide)
 imputed <- impute.knn(data_matrix)$data
 
-hh <- hclust(dist(imputed))
-heatmap(imputed)
+
 ```
 
 
