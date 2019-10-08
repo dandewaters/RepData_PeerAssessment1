@@ -11,8 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Loading and preprocessing the data
 ```{r getdata}
+zip_file_name = "./activity.zip"
+
 # Unzip data file
-unzip(data_file_name, exdir="./", overwrite=TRUE)
+unzip(zip_file_name, exdir="./", overwrite=TRUE)
 data <- read.csv("./activity.csv")
 ```
 
@@ -20,7 +22,6 @@ data <- read.csv("./activity.csv")
 ## What is mean total number of steps taken per day?
 ```{r meansteps}
 # Load in dependencies
-library(tidyr)
 library(dplyr)
 library(ggplot2)
 
@@ -47,7 +48,8 @@ abline(v=median_steps, col="blue", lty=2, lwd=2)
 legend("topright", legend=c("Mean", "Median"),
        col=c("red", "blue"), lty=2, lwd=2)
 ```
-First we group the step numbers by the date using group_by and take the sum of the total steps on each day.
+
+First we group the step numbers by the date using group_by and take the sum of the total steps on each day. We then use this to calculate the mean and median steps of each day. For this dataset the mean of the total steps for each day was 'r mean_steps' and the median was 'r median_steps'
 
 ## What is the average daily activity pattern?
 ```{r dailyactivitypattern}
@@ -77,6 +79,37 @@ text(max_interval+330, max_steps-5, msg)
 ```{r imputemissingvalues}
 library(impute)
 library(reshape2)
+
+# Get average for every interval in dataset
+interval_avgs <- 
+  data %>%
+  group_by(interval) %>%
+  summarize(mean_steps = mean(steps, na.rm=TRUE))
+
+# Make temporary variable for imputed data
+imputed_data <- data
+
+# Replace intervals that have missing steps data with average
+# Step number at that interval
+for (i in 1:dim(data)[1]){
+  if(is.na(imputed_data$steps[i])){
+    # Get interval of missing row
+    interval <- imputed_data$interval[i]
+    # Get index in averages data frame
+    index <- interval_avgs$interval==interval
+    # Replace NA with average at that interval
+    imputed_data$steps[i] = interval_avgs$mean_steps[index]
+  }
+}
+
+# Plot histogram of dataset before and after imputing
+par(mfrow=c(1,2))
+hist(data$steps, main="Before Imputing", xlab="Steps", col="red")
+hist(imputed_data$steps, main="After Imputing", xlab="Steps", col="blue")
+```
+
+```{r temp impute}
+
 # Cast dataframe to wide format
 wide <- dcast(data, interval~date, value.var="steps")
 
