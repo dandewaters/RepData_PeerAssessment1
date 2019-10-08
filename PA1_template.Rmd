@@ -37,7 +37,7 @@ median_steps <- median(data_totals$total_steps, na.rm=TRUE)
 
 # Make histogram of step totals
 with(data_totals,
-     hist(data_totals$total_steps, breaks=30,
+     hist(data_totals$total_steps, breaks=15,
           xlab="Total Steps", main="Histogram of Total Steps Per Day"))
 
 # Plot vertical lines at mean and median
@@ -49,7 +49,7 @@ legend("topright", legend=c("Mean", "Median"),
        col=c("red", "blue"), lty=2, lwd=2)
 ```
 
-First we group the step numbers by the date using group_by and take the sum of the total steps on each day. We then use this to calculate the mean and median steps of each day. For this dataset the mean of the total steps for each day was 'r mean_steps' and the median was 'r median_steps'
+First I grouped the step numbers by the date using group_by and take the sum of the total steps on each day. I then use this to calculate the mean and median steps of each day. For this dataset the mean of the total steps for each day was `r mean_steps` and the median was `r median_steps`. When plotting the histogram I used 15 break points.
 
 ## What is the average daily activity pattern?
 ```{r dailyactivitypattern}
@@ -70,15 +70,19 @@ with(activity_avgs,
 
 title(main="Average Daily Activity")
 lines(activity_avgs$interval, activity_avgs$mean_steps)
-abline(v=max_interval, col="red", lty=2, lwd=2)
-text(max_interval+330, max_steps-5, msg)
+abline(v=max_interval, col="blue", lty=2, lwd=2)
+text(max_interval+330, max_steps-5, msg, col="blue")
 ```
 
+For this question I started by grouping by the interval for all dates in the dataset and took the mean of the steps at each interval across all dates. I then found the maximum average steps to be `r max_seps` at interval `max_interval`. I plotted the time series and added a vertical line at the interval that had the highest average steps.
 
 ## Imputing missing values
 ```{r imputemissingvalues}
 library(impute)
 library(reshape2)
+
+# Get number of missing values in dataset
+total_nas <- sum(is.na(data$steps))
 
 # Get average for every interval in dataset
 interval_avgs <- 
@@ -108,27 +112,7 @@ hist(data$steps, main="Before Imputing", xlab="Steps", col="red")
 hist(imputed_data$steps, main="After Imputing", xlab="Steps", col="blue")
 ```
 
-```{r temp impute}
-
-# Cast dataframe to wide format
-wide <- dcast(data, interval~date, value.var="steps")
-
-# Make rownames
-rownames(wide) <- wide$interval
-wide <- wide[,-1]
-
-# Remove columns that don't have any values
-is_all_na <- function(x){all(is.na(x))}
-all_nas <- sapply(wide, is_all_na)
-wide <- wide[!all_nas]
-
-# Impute remaining data
-data_matrix <- as.matrix(wide)
-imputed <- impute.knn(data_matrix)$data
-
-
-```
-
+This dataset had a total of `r total_nas` missing values. I chose to impute this missing data by replacing them with the average step number at the respective interval. To accomplish this, I grouped the dataset by its interval across all dates and took the mean of the steps at each interval. I then used a for loop to look through the steps column for missing values. When a missing value is found, it is replaced with the average value at the corresponding interval.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r weekdayweedkenddiff}
