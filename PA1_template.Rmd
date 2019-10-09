@@ -49,7 +49,7 @@ legend("topright", legend=c("Mean", "Median"),
        col=c("red", "blue"), lty=2, lwd=2)
 ```
 
-First I grouped the step numbers by the date using group_by and take the sum of the total steps on each day. I then use this to calculate the mean and median steps of each day. For this dataset the mean of the total steps for each day was `r mean_steps` and the median was `r median_steps`. When plotting the histogram I used 15 break points.
+First I grouped the step numbers by the date using group_by and take the sum of the total steps on each day. I then use this to calculate the mean and median steps of each day. For this dataset the mean of the total steps for each day was `r floor(mean_steps)` and the median was `r median_steps`. When plotting the histogram I used 15 break points.
 
 ## What is the average daily activity pattern?
 ```{r dailyactivitypattern}
@@ -63,6 +63,7 @@ activity_avgs <-
 max_steps <- max(activity_avgs$mean_steps)
 max_interval <- activity_avgs$interval[activity_avgs$mean_steps == max_steps]
 msg <- paste("Max:", as.character(floor(max_steps)), "steps")
+
 # Plot average steps 
 with(activity_avgs,
      plot(interval, mean_steps, type="n",
@@ -74,7 +75,7 @@ abline(v=max_interval, col="blue", lty=2, lwd=2)
 text(max_interval+330, max_steps-5, msg, col="blue")
 ```
 
-For this question I started by grouping by the interval for all dates in the dataset and took the mean of the steps at each interval across all dates. I then found the maximum average steps to be `r max_seps` at interval `max_interval`. I plotted the time series and added a vertical line at the interval that had the highest average steps.
+For this question I started by grouping by the interval for all dates in the dataset and took the mean of the steps at each interval across all dates. I then found the maximum average steps to be `r floor(max_steps)` at interval `r max_interval`. I plotted the time series and added a vertical line at the interval that had the highest average steps.
 
 ## Imputing missing values
 ```{r imputemissingvalues}
@@ -112,23 +113,25 @@ hist(data$steps, main="Before Imputing", xlab="Steps", col="red")
 hist(imputed_data$steps, main="After Imputing", xlab="Steps", col="blue")
 ```
 
-This dataset had a total of `r total_nas` missing values. I chose to impute this missing data by replacing them with the average step number at the respective interval. To accomplish this, I grouped the dataset by its interval across all dates and took the mean of the steps at each interval. I then used a for loop to look through the steps column for missing values. When a missing value is found, it is replaced with the average value at the corresponding interval.
+This dataset had a total of `r total_nas` missing values. I chose to impute this missing data by replacing them with the average step number at the respective interval across all dates. To accomplish this, I grouped the dataset by its interval and took the mean of the steps at each interval. I then used a for loop to look through the steps column for missing values. When a missing value is found, it is replaced with the average value at the corresponding interval. I then plotted a histogram of the dataset before and after imputing.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r weekdayweedkenddiff}
 library(lubridate)
 
-# Create new column that shows if data is a weekday or weekend
+# Function that determines if date is a weekday or weekend
 weekend_or_weekday <- function(xday){
   weekdays <- c(2,3,4,5)
   lub <- wday(ymd(xday))
   ifelse(lub %in% weekdays, "weekday", "weekend")
 }
 
-# take mean steps of each interval on weekends and weekdays
 weekday_means <- 
   data %>%
+  # Create new factor column that shows if date is a weekend or weekday
   mutate(weekday = weekend_or_weekday(date)) %>%
+  mutate(weekday = as.factor(weekday)) %>%
+  # Take mean steps of each interval on weekends and weekdays
   group_by(weekday, interval) %>%
   summarise(mean_steps = mean(steps, na.rm=TRUE))
 
@@ -148,3 +151,4 @@ legend("topright", legend=c("Mean weekday steps", "Mean weekend steps"),
        col=c("red", "blue"), lty=2, lwd=2)
 ```
 
+To find the weekend/weekday differences I started by using a lubridate function to determine which dates in the dataset were weekdays or weekends. I then group by weekdays and intervals and calculate the means of those groups and plotted the mean number of steps at each interval for weekdays and weekends
